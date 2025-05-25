@@ -1,10 +1,10 @@
 [project]
-name = "automon_poc"
-requires-python = ">=3.11"
+name = "photo_organizer"
+requires-python = ">=3.12"
 license-files = ["LICENSE"]
 
 [tool.poetry]
-name = "poc"
+name = "photo_organizer"
 version = "1.0.0"
 authors = ["example@example.com"]
 readme = "README.md"
@@ -17,6 +17,7 @@ requests = "2.32.3"
 ruff = "0.11.0"
 mypy = "1.15.0"
 types-requests = "2.32.0.20250306"
+pillow = "11.2.1"
 
 [tool.mypy]
 python_version = 3.12
@@ -32,7 +33,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
-line-length = 120
+line-length = 100
 
 [tool.ruff.lint]
 extend-select = [
@@ -72,4 +73,4 @@ ignore = [
 convention = "google"
 
 [tool.ruff.lint.pycodestyle]
-max-line-length = 200
+max-line-length = 100

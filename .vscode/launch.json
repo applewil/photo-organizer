@@ -8,8 +8,9 @@
             "name": "Python Debugger: Module",
             "type": "debugpy",
             "request": "launch",
-            "module": "photo",
-            "justMyCode": false
+            "module": "photo_organizer",
+            "justMyCode": false,
+            "envFile": "${workspaceFolder}/main.env"
         }
     ]
 }

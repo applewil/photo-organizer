@@ -1,0 +1,92 @@
+<html>
+
+<head>
+    <title>Photo Organizer</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #333;
+        }
+
+        .top-half {
+            height: 50vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        img {
+            height: 100%;
+            border-style: solid;
+        }
+
+        .bottom-half {
+            height: 50vh;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 10px;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            height: 100%;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="top-half">
+        <img id="image" src="">
+    </div>
+    <div class="bottom-half" id="bottom-half">
+    </div>
+
+    <script>
+        function getPath() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const path = urlParams.get('path');
+            return path
+        }
+
+        async function sendPost(year) {
+            const path = getPath()
+            const url = `/action?path=${path}&year=${year}`
+            const response = await fetch(url, { method: 'POST' })
+            const { path: next_path, done } = await response.json()
+            if (response.status != 200) {
+                console.log(text)
+                throw Error(`Bad status ${response.status} ${url}`)
+            }
+            if (done == true) {
+                window.location.href = `/done.html`;
+            } else {
+                window.location.href = `/?path=${next_path}`;
+            }
+        }
+
+        function createButton(text, container) {
+            const button = document.createElement('button');
+            button.textContent = text;
+            button.addEventListener('click', () => sendPost(text));
+            container.appendChild(button);
+        }
+
+        function main() {
+            const container = document.getElementById('bottom-half');
+            createButton("Earlier", container)
+            for (let i = 0; i < 23; i++) {
+                createButton(i + 1988, container)
+            }
+            createButton("Later", container)
+
+            document.getElementById('image').src = getPath();
+        }
+
+        main()
+    </script>
+</body>
+
+</html>

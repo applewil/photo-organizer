@@ -14,6 +14,9 @@ class App:
     def move_duplicates(self) -> None:
         self._organizer.move_duplicates()
 
+    def move_non_photos(self) -> None:
+        self._organizer.move_non_photos()
+
     def move_by_exif(self) -> None:
         self._organizer.move_by_exif()
 

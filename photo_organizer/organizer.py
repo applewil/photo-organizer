@@ -1,6 +1,8 @@
 from hashlib import sha256
 from logging import getLogger
+from mimetypes import guess_type
 from pathlib import Path
+from re import sub
 from shutil import move
 from typing import ClassVar, cast
 
@@ -33,7 +35,7 @@ class Organizer:
 
     def move_file_to_dir(self, path: str, dir: str) -> None:
         input_path = Path(path)
-        output_path = Path(self._output_dir, dir, input_path.name)
+        output_path = Path(self._output_dir, dir, Organizer.get_simple_filename(path))
 
         # Create destination directory if it doesn't exist
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -57,9 +59,33 @@ class Organizer:
         paths = sorted([p for p in root.rglob("*") if p.is_file()])
         duplicates = Organizer.find_duplicates(paths)
         for group in duplicates:
-            _logger.info(f"Found dup: {paths}")
+            _logger.info("Found dup")
             for path in group[1:]:
                 self.move_file_to_dir(path=path, dir="Duplicate")
+
+    @staticmethod
+    def is_image(path: str) -> bool:
+        mime_type, _ = guess_type(path)
+        if mime_type:
+            if mime_type.startswith("image/"):
+                    try:
+                        with Image.open(path) as _:
+                            return True
+                    except Exception:
+                        pass
+        return False
+
+    def move_non_photos(self) -> None:
+        root = Path(self._input_dir)
+        paths = sorted([f"{p}" for p in root.rglob("*") if p.is_file()])
+        for path in paths:
+            if not Organizer.is_image(path):
+                self.move_file_to_dir(path=path, dir="Non-Image")
+
+    @staticmethod
+    def get_simple_filename(subject: str) -> str:
+        santized = sub(r"[^a-zA-Z0-9\.]+", "-", subject)
+        return santized[-64:]
 
     @staticmethod
     def calculate_checksum(path: Path) -> str:
@@ -90,6 +116,8 @@ class Organizer:
         if not date_raw:
             return None
         year, *_ = date_raw.split(":")
+        if year == "0000":
+            raise Exception("Bad Year")
         return year
 
     @staticmethod

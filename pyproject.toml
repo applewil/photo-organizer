@@ -1,0 +1,75 @@
+[project]
+name = "automon_poc"
+requires-python = ">=3.11"
+license-files = ["LICENSE"]
+
+[tool.poetry]
+name = "poc"
+version = "1.0.0"
+authors = ["example@example.com"]
+readme = "README.md"
+package-mode = false
+
+
+[tool.poetry.dependencies]
+python = "^3.12"
+requests = "2.32.3"
+ruff = "0.11.0"
+mypy = "1.15.0"
+types-requests = "2.32.0.20250306"
+
+[tool.mypy]
+python_version = 3.12
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_any_unimported = true
+exclude = ["dist", "build"]
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+extend-select = [
+    "B",  # bugbear
+    "D",  # pydocstyle
+    "E",  # pycodestyle
+    "F",  # pyflakes
+    "I",  # isort
+    "PYI", # flake8-pyi
+    "UP", # pyupgrade
+    "RUF", # ruff
+    "W",  # pycodestyle
+    "PIE", # flake8-pie
+    "PGH004", # pygrep-hooks - Use specific rule codes when using noqa
+    "PLE", # pylint error
+    "PLW", # pylint warning
+    "PLR1714", # Consider merging multiple comparisons
+    "SLF001", # Private member access
+]
+
+ignore = [
+    "D100", # Missing docstring in public module
+    "D101", # Missing docstring in public class
+    "D102", # Missing docstring in public method
+    "D103", # Missing docstring in public function
+    "D104", # Missing docstring in public package
+    "D105", # Missing docstring in magic method
+    "D106", # Missing docstring in public nested class
+    "D107", # Missing docstring in `__init__`
+    "D205", # 1 blank line required between summary line and description
+    "D400", # First line should end with a period
+    "D401", # First line of docstring should be in imperative mood
+    "D415", # First line should end with a period, question mark, or exclamation point
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.pycodestyle]
+max-line-length = 200

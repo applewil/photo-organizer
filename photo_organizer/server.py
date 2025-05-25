@@ -28,10 +28,7 @@ class Server:
             if url.path == "/" and "path=" not in url.query:
                 # Add query with starting image
                 next_path = self._organizer.get_next_path()
-                if not next_path:
-                    new_url = "/done.html"
-                else:
-                    new_url = f"/?path={next_path}"
+                new_url = f"/?path={next_path}"
                 self.send_response(302)
                 self.send_header("Location", new_url)
                 self.end_headers()
@@ -51,10 +48,7 @@ class Server:
             self.send_response(200)
             self.end_headers()
             next_path = self._organizer.get_next_path()
-            if next_path:
-                response = {"path": next_path}
-            else:
-                response = {"done": True}
+            response = {"path": next_path}
             self.wfile.write(dumps(response).encode("utf-8"))
 
     class ReusableTcpServer(TCPServer):

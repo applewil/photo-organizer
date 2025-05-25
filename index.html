@@ -55,16 +55,12 @@
             const path = getPath()
             const url = `/action?path=${path}&year=${year}`
             const response = await fetch(url, { method: 'POST' })
-            const { path: next_path, done } = await response.json()
+            const { path: next_path } = await response.json()
             if (response.status != 200) {
                 console.log(text)
                 throw Error(`Bad status ${response.status} ${url}`)
             }
-            if (done == true) {
-                window.location.href = `/done.html`;
-            } else {
-                window.location.href = `/?path=${next_path}`;
-            }
+            window.location.href = `/?path=${next_path}`;
         }
 
         function createButton(text, container) {

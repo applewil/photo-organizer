@@ -2,8 +2,10 @@ from hashlib import sha256
 from logging import getLogger
 from mimetypes import guess_type
 from pathlib import Path
+from random import choices
 from re import sub
 from shutil import move
+from string import ascii_letters, digits
 from typing import ClassVar, cast
 
 from PIL import Image
@@ -57,23 +59,41 @@ class Organizer:
     def move_duplicates(self) -> None:
         root = Path(self._input_dir)
         paths = sorted([p for p in root.rglob("*") if p.is_file()])
+        _logger.info("Finding duplicates...")
         duplicates = Organizer.find_duplicates(paths)
         for group in duplicates:
             _logger.info("Found dup")
             for path in group[1:]:
                 self.move_file_to_dir(path=path, dir="Duplicate")
 
+    def convert_images(self, mime_type: str) -> None:
+        root = Path(self._input_dir)
+        paths = sorted([p for p in root.rglob("*") if p.is_file()])
+        selected_paths = [p for p in paths if Organizer.is_mime_type(mime_type, f"{p}")]
+        for path in selected_paths:
+            _logger.info(f"Found {mime_type} to convert")
+            Organizer.convert_to_png(f"{path}")
+
+        _logger.info(f"Converted all {mime_type}")
+        for path in selected_paths:
+            path.unlink()
+
     @staticmethod
     def is_image(path: str) -> bool:
         mime_type, _ = guess_type(path)
         if mime_type:
             if mime_type.startswith("image/"):
-                    try:
-                        with Image.open(path) as _:
-                            return True
-                    except Exception:
-                        pass
+                try:
+                    with Image.open(path) as _:
+                        return True
+                except Exception:
+                    pass
         return False
+
+    @staticmethod
+    def is_mime_type(type: str, path: str) -> bool:
+        mime_type, _ = guess_type(path)
+        return mime_type == type
 
     def move_non_photos(self) -> None:
         root = Path(self._input_dir)
@@ -85,7 +105,15 @@ class Organizer:
     @staticmethod
     def get_simple_filename(subject: str) -> str:
         santized = sub(r"[^a-zA-Z0-9\.]+", "-", subject)
-        return santized[-64:]
+        last_61 = santized[-61:]
+        # Add uniqness to avoid overwriting
+        uniqueness = Organizer.generate_random_characters(3)
+        return f"{uniqueness}{last_61}"
+
+    @staticmethod
+    def generate_random_characters(length: int) -> str:
+        chars = ascii_letters + digits  # a-zA-Z0-9
+        return "".join(choices(chars, k=length)).lower()
 
     @staticmethod
     def calculate_checksum(path: Path) -> str:
@@ -117,7 +145,8 @@ class Organizer:
             return None
         year, *_ = date_raw.split(":")
         if year == "0000":
-            raise Exception("Bad Year")
+            _logger.info(f"Bad Year {date_raw}")
+            return None
         return year
 
     @staticmethod
@@ -127,3 +156,11 @@ class Organizer:
             if tag in tags:
                 return cast(str, tags[tag])
         return None
+
+    @staticmethod
+    def convert_to_png(path: str) -> None:
+        try:
+            with Image.open(path) as image:
+                image.save(f"{path}.png", format="PNG")
+        except Exception:
+            _logger.exception(path)

@@ -20,5 +20,11 @@ class App:
     def move_by_exif(self) -> None:
         self._organizer.move_by_exif()
 
+    def convert_tiffs(self) -> None:
+        self._organizer.convert_images("image/tiff")
+
+    def convert_bmps(self) -> None:
+        self._organizer.convert_images("image/bmp")
+
     def run_date_server(self) -> None:
         Server.run(port=self._port, organizer=self._organizer)

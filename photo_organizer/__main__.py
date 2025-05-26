@@ -9,8 +9,9 @@ def main() -> None:
     app = App()
     # app.move_duplicates()
     # app.move_non_photos()
+    # app.convert_tiffs()
+    # app.convert_bmps()
     # app.move_by_exif()
-    # TODO convert TIF
     app.run_date_server()
 
 

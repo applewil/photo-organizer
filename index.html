@@ -77,29 +77,36 @@
             container.appendChild(button);
         }
 
-        function createNavigationButton(text, startingYear, container) {
+        function createNavigationButton(text, amount, container) {
             const button = document.createElement('button');
             button.textContent = text;
-            button.addEventListener('click', () => updateYearButtons(startingYear));
+            button.addEventListener('click', () => updateYearButtons(amount));
             container.appendChild(button);
         }
 
-        function updateYearButtons(startingYear) {
+        function updateYearButtons(amount, startingYear = undefined) {
+            startingYear = startingYear ?? getStartingYear()
             const elements = document.querySelectorAll('.year-button');
             elements.forEach((element, index) => {
-                element.textContent = `${startingYear + index}`
+                element.textContent = `${startingYear + amount + index}`
             })
+        }
+
+        function getStartingYear() {
+            const elements = document.querySelectorAll('.year-button');
+            return parseInt(elements[0].textContent)
         }
 
         function main() {
             const container = document.getElementById('bottom-half');
-            createNavigationButton("Earlier", 1970, container)
-            createNavigationButton("Later", 2014, container)
+            numberYearOfButtons = 22
+            createNavigationButton("Earlier", -numberYearOfButtons, container)
+            createNavigationButton("Later", numberYearOfButtons, container)
             createTrashButton(container)
-            for (let i = 0; i < 22; i++) {
+            for (let i = 0; i < numberYearOfButtons; i++) {
                 createYearButton(container)
             }
-            updateYearButtons(1992)
+            updateYearButtons(0, 1992)
 
             document.getElementById('image').src = getPath();
         }

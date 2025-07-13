@@ -63,21 +63,43 @@
             window.location.href = `/?path=${next_path}`;
         }
 
-        function createButton(text, container) {
+        function createYearButton(container) {
+            const button = document.createElement('button');
+            button.className = 'year-button'
+            button.addEventListener('click', () => sendPost(button.textContent));
+            container.appendChild(button);
+        }
+
+        function createTrashButton(container) {
+            const button = document.createElement('button');
+            button.textContent = "Trash"
+            button.addEventListener('click', () => sendPost(button.textContent));
+            container.appendChild(button);
+        }
+
+        function createNavigationButton(text, startingYear, container) {
             const button = document.createElement('button');
             button.textContent = text;
-            button.addEventListener('click', () => sendPost(text));
+            button.addEventListener('click', () => updateYearButtons(startingYear));
             container.appendChild(button);
+        }
+
+        function updateYearButtons(startingYear) {
+            const elements = document.querySelectorAll('.year-button');
+            elements.forEach((element, index) => {
+                element.textContent = `${startingYear + index}`
+            })
         }
 
         function main() {
             const container = document.getElementById('bottom-half');
-            createButton("Trash", container)
-            createButton("Earlier", container)
+            createNavigationButton("Earlier", 1970, container)
+            createNavigationButton("Later", 2014, container)
+            createTrashButton(container)
             for (let i = 0; i < 22; i++) {
-                createButton(i + 1992, container)
+                createYearButton(container)
             }
-            createButton("Later", container)
+            updateYearButtons(1992)
 
             document.getElementById('image').src = getPath();
         }

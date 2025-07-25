@@ -1,3 +1,4 @@
+from datetime import datetime
 from functools import partial
 from http.server import SimpleHTTPRequestHandler
 from json import dumps
@@ -42,7 +43,8 @@ class Server:
             parameters = parse_qs(url.query)
             [path] = parameters["path"]
             [year] = parameters["year"]
-            self._organizer.move_file_to_dir(path, year)
+            new_path = self._organizer.move_file_to_dir(path, year)
+            self._organizer.set_exif_date(new_path, datetime(int(year), 1, 2))
 
             # Respond with next path
             self.send_response(200)

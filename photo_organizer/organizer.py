@@ -1,3 +1,5 @@
+import os
+from datetime import datetime
 from hashlib import sha256
 from logging import getLogger
 from mimetypes import guess_type
@@ -8,6 +10,7 @@ from shutil import move
 from string import ascii_letters, digits
 from typing import ClassVar, cast
 
+import piexif  # type: ignore
 from PIL import Image
 from PIL.ExifTags import TAGS
 from PIL.Image import Exif
@@ -35,7 +38,7 @@ class Organizer:
         paths = sorted([p for p in root.rglob("*") if p.is_file()])
         return f"{paths[0]}" if len(paths) else None
 
-    def move_file_to_dir(self, path: str, dir: str) -> None:
+    def move_file_to_dir(self, path: str, dir: str) -> str:
         input_path = Path(path)
         output_path = Path(self._output_dir, dir, Organizer.get_simple_filename(path))
 
@@ -46,6 +49,7 @@ class Organizer:
 
         # Move the file
         move(f"{input_path}", f"{output_path}")
+        return f"{output_path}"
 
     def move_by_exif(self) -> None:
         root = Path(self._input_dir)
@@ -62,19 +66,19 @@ class Organizer:
         _logger.info("Finding duplicates...")
         duplicates = Organizer.find_duplicates(paths)
         for group in duplicates:
-            _logger.info("Found dup")
+            _logger.info("Found duplicate")
             for path in group[1:]:
                 self.move_file_to_dir(path=path, dir="Duplicate")
 
-    def convert_images(self, mime_type: str) -> None:
+    def convert_non_jpeg_images(self) -> None:
         root = Path(self._input_dir)
         paths = sorted([p for p in root.rglob("*") if p.is_file()])
-        selected_paths = [p for p in paths if Organizer.is_mime_type(mime_type, f"{p}")]
+        selected_paths = [p for p in paths if Organizer.is_non_jpeg_image(f"{p}")]
         for path in selected_paths:
-            _logger.info(f"Found {mime_type} to convert")
-            Organizer.convert_to_png(f"{path}")
+            _logger.info("Found non-jpeg image to convert")
+            Organizer.convert_to_jpeg(f"{path}")
 
-        _logger.info(f"Converted all {mime_type}")
+        _logger.info("Converted all non-jpeg images")
         for path in selected_paths:
             path.unlink()
 
@@ -91,24 +95,34 @@ class Organizer:
         return False
 
     @staticmethod
-    def is_mime_type(type: str, path: str) -> bool:
+    def is_non_jpeg_image(path: str) -> bool:
         mime_type, _ = guess_type(path)
-        return mime_type == type
+        return (
+            mime_type is not None and mime_type.startswith("image/") and mime_type != "image/jpeg"
+        )
+
+    @staticmethod
+    def is_video(path: str) -> bool:
+        mime_type, _ = guess_type(path)
+        return mime_type is not None and mime_type.startswith("video/")
 
     def move_non_photos(self) -> None:
         root = Path(self._input_dir)
         paths = sorted([f"{p}" for p in root.rglob("*") if p.is_file()])
         for path in paths:
-            if not Organizer.is_image(path):
+            if Organizer.is_video(path):
+                self.move_file_to_dir(path=path, dir="Video")
+            elif not Organizer.is_image(path):
                 self.move_file_to_dir(path=path, dir="Non-Image")
 
     @staticmethod
     def get_simple_filename(subject: str) -> str:
         santized = sub(r"[^a-zA-Z0-9\.]+", "-", subject)
         last_61 = santized[-61:]
+        name, ext = os.path.splitext(last_61)
         # Add uniqness to avoid overwriting
         uniqueness = Organizer.generate_random_characters(3)
-        return f"{uniqueness}{last_61}"
+        return f"{name}{uniqueness}{ext}"
 
     @staticmethod
     def generate_random_characters(length: int) -> str:
@@ -158,9 +172,28 @@ class Organizer:
         return None
 
     @staticmethod
-    def convert_to_png(path: str) -> None:
+    def convert_to_jpeg(path: str) -> None:
         try:
             with Image.open(path) as image:
-                image.save(f"{path}.png", format="PNG")
+                exif = image.info.get("exif")
+                kwargs = {"exif": exif} if exif else {}
+                image.convert("RGB").save(f"{path}.jpg", format="JPEG", **kwargs)
+        except Exception:
+            _logger.exception(path)
+
+    @staticmethod
+    def set_exif_date(path: str, date: datetime) -> None:
+        date_str = date.strftime("%Y:%m:%d %H:%M:%S")
+        exif_bytes = piexif.dump(
+            {
+                "0th": {piexif.ImageIFD.DateTime: date_str},
+                "Exif": {
+                    piexif.ExifIFD.DateTimeOriginal: date_str,
+                },
+            }
+        )
+        try:
+            with Image.open(path) as image:
+                image.save(path, exif=exif_bytes)
         except Exception:
             _logger.exception(path)

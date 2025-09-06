@@ -3,7 +3,7 @@
 set -euxo pipefail
 
 rm -rf data/input
-mkdir data/input
+mkdir -p data/input
 cd data/input
 
 for path in ~/Downloads/photo-corpus/*; do

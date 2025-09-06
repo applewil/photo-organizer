@@ -7,8 +7,8 @@ def main() -> None:
     basicConfig(level=INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
     app = App()
-    app.preprocess()
-    # app.run_date_server()
+    # app.preprocess()
+    app.run_date_server()
 
 
 main()

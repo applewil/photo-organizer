@@ -44,7 +44,9 @@ class Server:
             [path] = parameters["path"]
             [year] = parameters["year"]
             new_path = self._organizer.move_file_to_dir(path, year)
-            self._organizer.set_exif_date(new_path, datetime(int(year), 1, 2))
+            if year.isdigit():
+                # Don't set date if year is "Trash"
+                self._organizer.set_exif_date(new_path, datetime(int(year), 1, 2))
 
             # Respond with next path
             self.send_response(200)

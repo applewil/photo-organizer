@@ -1,11 +1,15 @@
 #!/usr/bin/env sh
 
-rm -rf data
-index=0
+set -euxo pipefail
+
+rm -rf data/input
+mkdir data/input
+cd data/input
+
 for path in ~/Downloads/photo-corpus/*; do
-  mkdir -p data/input/$index
-  cd data/input/$index
+  (( index = ${index:-0} + 1 ))
+  mkdir -p $index
+  cd $index
   unzip "$path"
   cd ..
-  ((index++))
 done
